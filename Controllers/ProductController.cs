@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductManagement.Data;
+using ProductManagement.DTOs.ProductDTOs;
 using ProductManagement.Models;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -19,42 +20,77 @@ namespace ProductManagement.Controllers
         }
 
         [HttpGet("GetAllProducts")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetAllProducts()
+        [ProducesResponseType(typeof(SysResponse<List<Product>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(SysResponse<object>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> GetAllProducts()
         {
-            return await _context.Products.ToListAsync();
+           
+            return Ok(SysResponse.Success(await _context.Products.ToListAsync()));
         }
 
         
         [HttpGet("GetProduct/{id}")]
-        public async Task<ActionResult<Product>> GetProduct(int id)
+        [ProducesResponseType(typeof(SysResponse<Product>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(SysResponse<object>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> GetProduct(int id)
         {
             var product = await _context.Products.FindAsync(id);
 
             if (product == null)
             {
-                return NotFound();
+                return NotFound(SysResponse.Error(null,"Object not found"));
             }
 
-            return product;
+            return Ok(SysResponse.Success(product));
         }
 
         
         [HttpPost("AddProduct")]
-        public async Task<ActionResult<Product>> AddProduct([FromBody] Product product)
+        [ProducesResponseType(typeof(SysResponse<Product>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(SysResponse<object>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<Product>> AddProduct([FromBody] ProductCreateDTO productDto)
         {
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
+
+            var product = new Product
+            {
+                Name = productDto.Name,
+                Description = productDto.Description,
+                Price = productDto.Price,
+                Stock = productDto.Stock
+            };
+
+            try
+            {
+                _context.Products.Add(product);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+
+                return NotFound(SysResponse.Error(null, "Product cannot created"));
+            }
+           
             return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
         }
 
 
         [HttpPut("UpdateProduct/{id}")]
-        public async Task<IActionResult> UpdateProduct(int id, [FromBody] Product product)
+        [ProducesResponseType(typeof(SysResponse<Product>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(SysResponse<object>), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateProduct(int id, [FromBody] ProductUpdateDTO productDto)
         {
-            if (id != product.Id)
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
             {
-                return BadRequest();
+                return NotFound(SysResponse.Error(product, "Product not found"));
             }
+         
+
+            product.Name = productDto.Name;
+            product.Description = productDto.Description;
+            product.Price = productDto.Price;
+            product.Stock = productDto.Stock;
+
             _context.Entry(product).State = EntityState.Modified;
             try
             {
@@ -62,38 +98,33 @@ namespace ProductManagement.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProductExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound(SysResponse.Error(product, "Cannot update the product"));
             }
-            return NoContent();
+            return Ok(SysResponse.Success(product));
         }
 
 
         [HttpDelete("DeleteProduct/{id}")]
+        [ProducesResponseType(typeof(SysResponse<Product>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(SysResponse<object>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteProductAsync(int id)
         {
             var product = await _context.Products.FindAsync(id);
             if (product == null)
             {
-                return NotFound();
+                return NotFound(SysResponse.Error(product, "Product not found"));
             }
 
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(SysResponse.Success(product));
         }
 
 
-        private bool ProductExists(int id)
-        {
-            return _context.Products.Any(e => e.Id == id);
-        }
+        //private bool ProductExists(int id)
+        //{
+        //    return _context.Products.Any(e => e.Id == id);
+        //}
     }
 }
