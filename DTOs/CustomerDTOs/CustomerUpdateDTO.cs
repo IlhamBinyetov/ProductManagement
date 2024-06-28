@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ProductManagement.DTOs.ProductDTOs.CustomerDTOs
+namespace ProductManagement.DTOs.CustomerDTOs
 {
-    public class CustomerCreateDTO
+    public class CustomerUpdateDTO
     {
         [Required]
         [StringLength(maximumLength: 50)]
@@ -10,7 +10,7 @@ namespace ProductManagement.DTOs.ProductDTOs.CustomerDTOs
 
         [Required]
         [EmailAddress(ErrorMessage = "Invalid email address format")]
-        [StringLength(maximumLength:100)]
+        [StringLength(maximumLength: 100)]
         public string? Email { get; set; }
     }
 }
