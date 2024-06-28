@@ -38,7 +38,7 @@ namespace ProductManagement.Controllers
 
             if (product == null)
             {
-                return NotFound(SysResponse.Error(null,"Object not found"));
+                return NotFound(SysResponse.Error(null,"Product not found"));
             }
 
             return Ok(SysResponse.Success(product));
