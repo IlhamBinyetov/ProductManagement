@@ -11,6 +11,9 @@ POST /api/Product/AddProduct: Create a new product.
 PUT /api/Product/UpdateProduct/{id}: Update an existing product.
 DELETE /api/Product/DeleteProduct/{id}: Delete a product.
 
+
+
+
 Customers
 GET /api/Customer/GetAllCustomers: Get all Customer.
 GET /api/Customer/GetCustomer{id}: Get a Customer by ID.
